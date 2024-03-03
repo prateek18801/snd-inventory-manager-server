@@ -6,14 +6,15 @@ interface IUser {
     role: string,
     username: string,
     password: string,
-    archive: boolean
+    archive: boolean,
+    match(password: string): Promise<boolean>
 };
 
-const UserSchema = new Schema({
+const UserSchema = new Schema<IUser>({
     name: { type: String, required: true },
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true, unique: true },
-    role: { type: String, enum: ["root", "manager", "executive"], required: true },
+    role: { type: String, enum: ["root", "manager", "executive"], default: "executive" },
     archive: { type: Boolean, default: false }
 }, { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } });
 
