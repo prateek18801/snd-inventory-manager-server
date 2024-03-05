@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer, { memoryStorage } from "multer";
 import { postUsers } from "../controllers/user";
 import { postLogin } from "../controllers/auth";
-import { postProducts } from "../controllers/product";
+import { getProducts, postProducts } from "../controllers/product";
 
 const router: Router = Router();
 const upload = multer({ storage: memoryStorage() });
@@ -14,6 +14,7 @@ router.post("/v1/login", postLogin);
 router.post("/v1/users", postUsers);
 
 // product routes
+router.get("/v1/products", getProducts);
 router.post("/v1/products", upload.single("image"), postProducts);
 
 export default router;
