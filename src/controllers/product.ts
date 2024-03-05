@@ -9,11 +9,10 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
 const postProducts = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (await Product.findOne({ p_id: req.body.p_id })) {
-            return res.status(200).json({
+            return res.status(409).json({
                 message: "duplicate"
             });
         }
-
         const product = new Product(req.body);
         if (req.file) {
             await s3UploadObject({
@@ -24,7 +23,6 @@ const postProducts = async (req: Request, res: Response, next: NextFunction) => 
             product.image = `https://bot-snd-im.s3.ap-south-1.amazonaws.com/${product._id.toString()}`;
         }
         const saved = await product.save();
-
         return res.status(201).json({
             message: "created",
             data: saved
