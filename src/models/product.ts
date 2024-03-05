@@ -3,20 +3,18 @@ import { Schema, model } from "mongoose";
 interface IProduct {
     p_id: string,
     name: string,
-    image: string,
     alert: number,
     stock: number,
-    price?: number,
+    image?: string,
     description?: string,
 };
 
 const ProductSchema = new Schema({
     p_id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
-    image: { type: String, required: true },
     alert: { type: Number, required: true },
     stock: { type: Number, default: 0 },
-    price: { type: Number },
+    image: { type: String },
     description: { type: String }
 }, { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } });
 
