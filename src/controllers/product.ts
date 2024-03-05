@@ -3,7 +3,12 @@ import Product from "../models/product";
 import { s3UploadObject } from "../utils/aws";
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
-
+    try {
+        const products = await Product.find({}).lean();
+        return res.status(200).json(products);
+    } catch (err) {
+        next(err);
+    }
 }
 
 const postProducts = async (req: Request, res: Response, next: NextFunction) => {
