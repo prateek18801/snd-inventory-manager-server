@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import Product from "../models/product";
-import { s3UploadObject } from "../utils/aws";
+import { s3UploadObject, s3DeleteObject } from "../utils/aws";
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -42,7 +42,15 @@ const patchProducts = async (req: Request, res: Response, next: NextFunction) =>
 }
 
 const deleteProducts = async (req: Request, res: Response, next: NextFunction) => {
-
+    try {
+        const deleted = await Product.findByIdAndDelete(req.params.id);
+        if (deleted) {
+            await s3DeleteObject(deleted._id.toString());
+        }
+        return res.status(204).json();
+    } catch (err) {
+        next(err);
+    }
 }
 
 export {
