@@ -1,4 +1,4 @@
-import express, { json, urlencoded, Express, Response, Request } from "express";
+import express, { json, urlencoded, Express, Request, Response } from "express";
 import cors from "cors";
 import router from "./router";
 import db from "./utils/db";
@@ -16,9 +16,10 @@ app.get("/ping", (_req: Request, res: Response) => {
     });
 });
 
-app.use((err: Error, _req: Request, res: Response) => {
+app.use((err: any, _req: Request, res: Response) => {
     return res.status(500).json({
-        message: err.message
+        message: (err as Error).message,
+        error: err
     });
 });
 
