@@ -1,4 +1,4 @@
-import express, { json, urlencoded, Express, Request, Response } from "express";
+import express, { json, urlencoded, Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import router from "./router";
 import db from "./utils/db";
@@ -10,13 +10,13 @@ app.use(urlencoded({ extended: false }));
 
 app.use(router);
 
-app.get("/ping", (_req: Request, res: Response) => {
+app.get("/ping", (_req: Request, res: Response, _next: NextFunction) => {
     return res.status(200).json({
         message: "✅ server running"
     });
 });
 
-app.use((err: any, _req: Request, res: Response) => {
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     return res.status(500).json({
         message: (err as Error).message,
         error: err
