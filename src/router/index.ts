@@ -5,6 +5,7 @@ import { postLogin } from "../controllers/auth";
 import {
     getProducts,
     postProducts,
+    patchProducts,
     deleteProducts
 } from "../controllers/product";
 
@@ -20,6 +21,7 @@ router.post("/v1/users", postUsers);
 // product routes
 router.get("/v1/products", getProducts);
 router.post("/v1/products", upload.single("image"), postProducts);
+router.patch("/v1/products/:id", upload.single("image"), patchProducts);
 router.delete("/v1/products/:id", deleteProducts);
 
 export default router;
