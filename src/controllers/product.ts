@@ -38,7 +38,30 @@ const postProducts = async (req: Request, res: Response, next: NextFunction) => 
 }
 
 const patchProducts = async (req: Request, res: Response, next: NextFunction) => {
-
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json({
+                message: "not found"
+            });
+        }
+        if (req.file) {
+            await s3UploadObject({
+                name: product._id.toString(),
+                mimetype: req.file.mimetype,
+                body: req.file.buffer
+            });
+            product.image = `https://bot-snd-im.s3.ap-south-1.amazonaws.com/${product._id.toString()}`
+        }
+        Object.assign(product, req.body);
+        const saved = await product.save();
+        return res.status(200).json({
+            message: "updated",
+            data: saved
+        });
+    } catch (err) {
+        next(err);
+    }
 }
 
 const deleteProducts = async (req: Request, res: Response, next: NextFunction) => {
