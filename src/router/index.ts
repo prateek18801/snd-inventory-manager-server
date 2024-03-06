@@ -8,6 +8,7 @@ import {
     patchProducts,
     deleteProducts
 } from "../controllers/product";
+import { postWarehouses } from "../controllers/warehouse";
 
 const router: Router = Router();
 const upload = multer({ storage: memoryStorage() });
@@ -23,5 +24,8 @@ router.get("/v1/products", getProducts);
 router.post("/v1/products", upload.single("image"), postProducts);
 router.patch("/v1/products/:id", upload.single("image"), patchProducts);
 router.delete("/v1/products/:id", deleteProducts);
+
+// warehouse routes
+router.post("/v1/warehouses", postWarehouses);
 
 export default router;
