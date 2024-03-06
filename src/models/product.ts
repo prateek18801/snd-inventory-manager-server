@@ -1,14 +1,5 @@
 import { Schema, model } from "mongoose";
 
-interface IProduct {
-    p_id: string,
-    name: string,
-    alert: number,
-    stock: number,
-    image?: string,
-    description?: string,
-};
-
 const ProductSchema = new Schema({
     p_id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
@@ -18,4 +9,4 @@ const ProductSchema = new Schema({
     description: { type: String }
 }, { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } });
 
-export default model<IProduct>("Product", ProductSchema);
+export default model("Product", ProductSchema);
