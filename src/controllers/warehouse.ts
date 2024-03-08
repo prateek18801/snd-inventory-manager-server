@@ -2,7 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import Warehouse from "../models/warehouse";
 
 const getWarehouses = async (req: Request, res: Response, next: NextFunction) => {
-
+    try {
+        const warehouse = await Warehouse.find({}).lean();
+        return res.status(200).json(warehouse);
+    } catch (err) {
+        next(err);
+    }
 }
 
 const postWarehouses = async (req: Request, res: Response, next: NextFunction) => {
@@ -17,7 +22,7 @@ const postWarehouses = async (req: Request, res: Response, next: NextFunction) =
             message: "created",
             data: warehouse
         });
-    } catch(err) {
+    } catch (err) {
         next(err);
     }
 }
