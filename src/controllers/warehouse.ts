@@ -27,17 +27,17 @@ const postWarehouses = async (req: Request, res: Response, next: NextFunction) =
     }
 }
 
-const patchWarehouses = async (req: Request, res: Response, next: NextFunction) => {
-
-}
-
 const deleteWarehouses = async (req: Request, res: Response, next: NextFunction) => {
-
+    try {
+        await Warehouse.findByIdAndDelete(req.params.id);
+        return res.status(204).json();
+    } catch (err) {
+        next(err);
+    }
 }
 
 export {
     getWarehouses,
     postWarehouses,
-    patchWarehouses,
     deleteWarehouses
 }
