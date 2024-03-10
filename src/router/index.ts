@@ -15,6 +15,7 @@ import {
     deleteWarehouses
 } from "../controllers/warehouse";
 import { postTransactions } from "../controllers/transaction";
+import { getAppContext } from "../controllers/page";
 
 const router: Router = Router();
 const upload = multer({ storage: memoryStorage() });
@@ -41,5 +42,8 @@ router.get("/v1/stocks", getStocks);
 
 // transaction routes
 router.post("/v1/transactions", postTransactions);
+
+// application routes
+router.get("/v1/app/context", getAppContext);
 
 export default router;
