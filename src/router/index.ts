@@ -1,7 +1,8 @@
 import { Router } from "express";
 import multer, { memoryStorage } from "multer";
-import { postUsers } from "../controllers/user";
 import { postLogin } from "../controllers/auth";
+import { postUsers } from "../controllers/user";
+import { getStocks } from "../controllers/stock";
 import {
     getProducts,
     postProducts,
@@ -13,6 +14,7 @@ import {
     postWarehouses,
     deleteWarehouses
 } from "../controllers/warehouse";
+import { postTransactions } from "../controllers/transaction";
 
 const router: Router = Router();
 const upload = multer({ storage: memoryStorage() });
@@ -33,5 +35,11 @@ router.delete("/v1/products/:id", deleteProducts);
 router.get("/v1/warehouses", getWarehouses);
 router.post("/v1/warehouses", postWarehouses);
 router.delete("/v1/warehouses/:id", deleteWarehouses);
+
+// stock routes
+router.get("/v1/stocks", getStocks);
+
+// transaction routes
+router.post("/v1/transactions", postTransactions);
 
 export default router;
