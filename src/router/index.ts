@@ -14,7 +14,7 @@ import {
     postWarehouses,
     deleteWarehouses
 } from "../controllers/warehouse";
-import { postTransactions } from "../controllers/transaction";
+import { postTransactionsIn, postTransactionsOut } from "../controllers/transaction";
 import { getAppContext } from "../controllers/page";
 
 const router: Router = Router();
@@ -41,7 +41,8 @@ router.delete("/v1/warehouses/:id", deleteWarehouses);
 router.get("/v1/stocks", getStocks);
 
 // transaction routes
-router.post("/v1/transactions", postTransactions);
+router.post("/v1/transactions/in", postTransactionsIn);
+router.post("/v1/transactions/out", postTransactionsOut);
 
 // application routes
 router.get("/v1/app/context", getAppContext);
