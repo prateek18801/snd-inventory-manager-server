@@ -40,7 +40,46 @@ const postTransactionsIn = async (req: Request, res: Response, next: NextFunctio
 }
 
 const postTransactionsOut = async (req: Request, res: Response, next: NextFunction) => {
-    
+    try {
+        if (Array.isArray(req.body)) {
+            // process for picklist
+        }
+
+        const transaction = new Transaction(req.body);
+        transaction.action = "STOCK_OUT";
+        // transaction.user = new Types.ObjectId(req.user.sub);
+        transaction.user = new Types.ObjectId("65e4c6e211247715a07ead7e");
+
+        const session = await startSession();
+        session.startTransaction();
+        try {
+
+            const stock = await Stock.findOne({ product: transaction.product, warehouse: transaction.warehouse });
+            if (!stock || stock.quantity < transaction.quantity) {
+                return res.status(400).json({
+                    message: `Requested quantity ${transaction.quantity} is greater than warehouse quantity ${stock?.quantity || 0}`
+                });
+            }
+            
+            await Product.findByIdAndUpdate(transaction.product, { $inc: { stock: -transaction.quantity } }, { session });
+            await Stock.findOneAndUpdate({ product: transaction.product, warehouse: transaction.warehouse }, { $inc: { quantity: -transaction.quantity } }, { session });
+            await transaction.save({ session });
+
+            await session.commitTransaction();
+            await session.endSession();
+
+            return res.status(201).json({
+                message: "Transaction successful",
+                data: transaction
+            });
+        } catch (err) {
+            await session.abortTransaction();
+            await session.endSession();
+            throw err;
+        }
+    } catch (err) {
+        next(err);
+    }
 }
 
 export {
