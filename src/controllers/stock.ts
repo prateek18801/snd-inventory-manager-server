@@ -10,6 +10,37 @@ const getStocks = async (_req: Request, res: Response, next: NextFunction) => {
     }
 }
 
+const getWarehouseBreakdown = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const breakdown = [];
+        let required: number = Math.max(+(req.query.quantity || 0), 0);
+        const stock = await Stock.find({ product: req.query.product }).populate("warehouse").sort({ quantity: 1 });
+        for (const ws of stock) {
+            if (ws.quantity <= required) {
+                required -= ws.quantity;
+                breakdown.push({
+                    warehouse: ws.warehouse,
+                    quantity: ws.quantity
+                });
+            } else {
+                breakdown.push({
+                    warehouse: ws.warehouse,
+                    quantity: required
+                });
+                required = 0;
+                break;
+            }
+        }
+        if (required) return res.status(400).json({
+            message: `Requested quantity ${req.query.quantity} is greater than available quantity ${+(req.query.quantity || 0) - required}`
+        });
+        return res.status(200).json(breakdown);
+    } catch (err) {
+        next(err);
+    }
+}
+
 export {
-    getStocks
+    getStocks,
+    getWarehouseBreakdown
 };
