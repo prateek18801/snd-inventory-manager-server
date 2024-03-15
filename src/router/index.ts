@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer, { memoryStorage } from "multer";
 import { postLogin } from "../controllers/auth";
 import { postUsers } from "../controllers/user";
-import { getStocks } from "../controllers/stock";
+import { getStocks, getWarehouseBreakdown } from "../controllers/stock";
 import {
     getProducts,
     postProducts,
@@ -39,6 +39,7 @@ router.delete("/v1/warehouses/:id", deleteWarehouses);
 
 // stock routes
 router.get("/v1/stocks", getStocks);
+router.get("/v1/breakdown", getWarehouseBreakdown);
 
 // transaction routes
 router.post("/v1/transactions/in", postTransactionsIn);
