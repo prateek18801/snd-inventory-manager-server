@@ -3,7 +3,7 @@ import Stock from "../models/stock";
 
 const getStocks = async (_req: Request, res: Response, next: NextFunction) => {
     try {
-        const stock = await Stock.find({}).populate("product").populate("warehouse").lean();
+        const stock = await Stock.find({ quantity: { $gt: 0 } }).populate("product").populate("warehouse").lean();
         return res.status(200).json(stock);
     } catch (err) {
         next(err);
@@ -14,7 +14,7 @@ const getWarehouseBreakdown = async (req: Request, res: Response, next: NextFunc
     try {
         const breakdown = [];
         let required: number = Math.max(+(req.query.quantity || 0), 0);
-        const stock = await Stock.find({ product: req.query.product }).populate("warehouse").sort({ quantity: 1 });
+        const stock = await Stock.find({ product: req.query.product, quantity: { $gt: 0 } }).populate("warehouse").sort({ quantity: 1 });
         for (const ws of stock) {
             if (ws.quantity <= required) {
                 required -= ws.quantity;
