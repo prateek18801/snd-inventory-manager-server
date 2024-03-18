@@ -45,7 +45,7 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
         if (Array.isArray(req.body)) {
             const result = [];
             for (const item of req.body) {
-                const stocks = await Stock.find({ product: item.product }).populate("warehouse").sort({ quantity: 1 });
+                const stocks = await Stock.find({ product: item.product, quantity: { $gt: 0 } }).populate("warehouse").sort({ quantity: 1 });
                 if (item.quantity > stocks.reduce((total, { quantity }) => total + quantity, 0)) continue;
 
                 let required: number = item.quantity;
@@ -108,7 +108,7 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
                     quantity: item.quantity,
                     breakdown: breakdown
                 });
-            }
+            }            
             return res.status(201).json({
                 message: "Transaction Successful",
                 data: result
@@ -125,7 +125,7 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
         session.startTransaction();
         try {
 
-            const stock = await Stock.findOne({ product: transaction.product, warehouse: transaction.warehouse });
+            const stock = await Stock.findOne({ product: transaction.product, warehouse: transaction.warehouse, quantity: { $gt: 0 } });
             if (!stock || stock.quantity < transaction.quantity) {
                 return res.status(400).json({
                     message: `Requested quantity ${transaction.quantity} is greater than warehouse quantity ${stock?.quantity || 0}`
