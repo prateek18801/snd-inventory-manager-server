@@ -3,6 +3,7 @@ import { startSession, Types } from "mongoose";
 import Stock from "../models/stock";
 import Product from "../models/product";
 import Transaction from "../models/transaction";
+import Picklist from "../models/picklist";
 
 const getTransactions = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -108,7 +109,9 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
                     quantity: item.quantity,
                     breakdown: breakdown
                 });
-            }            
+            }
+            await new Picklist({ list: result }).save();
+
             return res.status(201).json({
                 message: "Transaction Successful",
                 data: result
