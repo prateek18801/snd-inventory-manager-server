@@ -4,8 +4,8 @@ import { s3UploadObject, s3DeleteObject } from "../utils/aws";
 
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const product = await Product.find({}).lean();
-        return res.status(200).json(product);
+        const products = await Product.find({}).lean();
+        return res.status(200).json(products);
     } catch (err) {
         next(err);
     }
