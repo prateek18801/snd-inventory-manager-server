@@ -2,7 +2,10 @@ import { Router } from "express";
 import multer, { memoryStorage } from "multer";
 import { postLogin } from "../controllers/auth";
 import { postUsers } from "../controllers/user";
-import { getStocks, getWarehouseBreakdown } from "../controllers/stock";
+import {
+    getStocks,
+    getWarehouseBreakdown
+} from "../controllers/stock";
 import {
     getProducts,
     postProducts,
@@ -14,7 +17,11 @@ import {
     postWarehouses,
     deleteWarehouses
 } from "../controllers/warehouse";
-import { postTransactionsIn, postTransactionsOut } from "../controllers/transaction";
+import {
+    getTransactions,
+    postTransactionsIn,
+    postTransactionsOut
+} from "../controllers/transaction";
 import { getAppContext } from "../controllers/page";
 
 const router: Router = Router();
@@ -42,6 +49,7 @@ router.get("/v1/stocks", getStocks);
 router.get("/v1/breakdown", getWarehouseBreakdown);
 
 // transaction routes
+router.get("/v1/transactions", getTransactions);
 router.post("/v1/transactions/in", postTransactionsIn);
 router.post("/v1/transactions/out", postTransactionsOut);
 
