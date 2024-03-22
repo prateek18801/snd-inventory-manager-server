@@ -6,7 +6,29 @@ import Transaction from "../models/transaction";
 import Picklist from "../models/picklist";
 
 const getTransactions = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const filter: {
+            created_at: { $gte: string, $lte: string },
+            product?: string,
+            warehouse?: string,
+            user?: string
+        } = {
+            created_at: {
+                $gte: `${req.query.start || new Date().toISOString().split("T")[0]}T00:00:00.000+05:30`,
+                $lte: `${req.query.end || new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]}T00:00:00.000+05:30`
+            }
+        };
+        for (const key of ["product", "warehouse", "user"]) {
+            if (req.query[key]) {
+                (filter as any)[key] = req.query[key];
+            }
+        }
 
+        const transactions = await Transaction.find(filter).populate("product").populate("warehouse").populate("user").lean();
+        return res.status(200).json(transactions);
+    } catch (err) {
+        next(err);
+    }
 }
 
 const postTransactionsIn = async (req: Request, res: Response, next: NextFunction) => {
