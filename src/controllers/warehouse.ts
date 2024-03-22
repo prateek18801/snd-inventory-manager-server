@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import Stock from "../models/stock";
 import Warehouse from "../models/warehouse";
 
 const getWarehouses = async (req: Request, res: Response, next: NextFunction) => {
@@ -29,7 +30,10 @@ const postWarehouses = async (req: Request, res: Response, next: NextFunction) =
 
 const deleteWarehouses = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        await Warehouse.findByIdAndDelete(req.params.id);
+        const deleted = await Warehouse.findByIdAndDelete(req.params.id);
+        if (deleted) {
+            await Stock.deleteMany({ warehouse: deleted._id });
+        }
         return res.status(204).json();
     } catch (err) {
         next(err);
