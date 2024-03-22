@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import Stock from "../models/stock";
 import Product from "../models/product";
 import { s3UploadObject, s3DeleteObject } from "../utils/aws";
 
@@ -69,6 +70,7 @@ const deleteProducts = async (req: Request, res: Response, next: NextFunction) =
         const deleted = await Product.findByIdAndDelete(req.params.id);
         if (deleted) {
             await s3DeleteObject(deleted._id.toString());
+            await Stock.deleteMany({product: deleted._id});
         }
         return res.status(204).json();
     } catch (err) {
