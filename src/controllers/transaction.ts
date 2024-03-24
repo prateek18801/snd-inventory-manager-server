@@ -81,7 +81,7 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
                     if (stock.quantity <= required) {
                         transactions.push(new Transaction({
                             action: "STOCK_OUT",
-                            reason: "Outbound",
+                            reason: "picklist",
                             quantity: stock.quantity,
                             // user: new new Types.ObjectId(req.user.sub),
                             user: new Types.ObjectId("65e4c6e211247715a07ead7e"),
@@ -103,7 +103,7 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
                     if (required > 0) {
                         transactions.push(new Transaction({
                             action: "STOCK_OUT",
-                            reason: "Outbound",
+                            reason: "picklist",
                             quantity: required,
                             // user: new new Types.ObjectId(req.user.sub),
                             user: new Types.ObjectId("65e4c6e211247715a07ead7e"),
