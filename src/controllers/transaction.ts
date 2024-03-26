@@ -24,7 +24,7 @@ const getTransactions = async (req: Request, res: Response, next: NextFunction) 
             }
         }
 
-        const transactions = await Transaction.find(filter).populate("product").populate("warehouse").populate("user").lean();
+        const transactions = await Transaction.find(filter).populate("product").populate("warehouse").populate("user").sort({ created_at: -1 }).lean();
         return res.status(200).json(transactions);
     } catch (err) {
         next(err);
