@@ -26,7 +26,7 @@ import {
     postTransactionsIn,
     postTransactionsOut
 } from "../controllers/transaction";
-import { getAppContext } from "../controllers/page";
+import { getAppContext, getDashboard } from "../controllers/page";
 
 const router: Router = Router();
 const upload = multer({ storage: memoryStorage() });
@@ -61,5 +61,6 @@ router.post("/v1/transactions/out", postTransactionsOut);
 
 // application routes
 router.get("/v1/app/context", getAppContext);
+router.get("/v1/app/dashboard", getDashboard);
 
 export default router;
