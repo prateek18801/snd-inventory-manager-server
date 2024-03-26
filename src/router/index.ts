@@ -14,7 +14,8 @@ import {
     getProducts,
     postProducts,
     patchProducts,
-    deleteProducts
+    deleteProducts,
+    exportProducts
 } from "../controllers/product";
 import {
     getWarehouses,
@@ -44,6 +45,7 @@ router.get("/v1/products", getProducts);
 router.post("/v1/products", upload.single("image"), postProducts);
 router.patch("/v1/products/:id", upload.single("image"), patchProducts);
 router.delete("/v1/products/:id", deleteProducts);
+router.get("/v1/product/export", exportProducts);
 
 // warehouse routes
 router.get("/v1/warehouses", getWarehouses);
