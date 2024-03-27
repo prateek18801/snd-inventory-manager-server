@@ -18,7 +18,7 @@ const getAppContext = async (req: Request, res: Response, next: NextFunction) =>
 
 const getDashboard = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const start = `${req.query.start || new Date(new Date().setDate(new Date().getDate() - 3)).toISOString().split("T")[0]}T00:00:00.000+05:30`;
+        const start = `${req.query.start || new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]}T00:00:00.000+05:30`;
         const end = `${req.query.end || new Date().toISOString().split("T")[0]}T00:00:00.000+05:30`;
 
         const filter: {
