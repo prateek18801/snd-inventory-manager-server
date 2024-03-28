@@ -5,7 +5,7 @@ import Stock from "../models/stock";
 import Product from "../models/product";
 import { s3UploadObject, s3DeleteObject } from "../utils/aws";
 
-const getProducts = async (req: Request, res: Response, next: NextFunction) => {
+const getProducts = async (_req: Request, res: Response, next: NextFunction) => {
     try {
         const products = await Product.find({}).lean();
         return res.status(200).json(products);
@@ -71,8 +71,8 @@ const deleteProducts = async (req: Request, res: Response, next: NextFunction) =
     try {
         const deleted = await Product.findByIdAndDelete(req.params.id);
         if (deleted) {
-            await s3DeleteObject(deleted._id.toString());
             await Stock.deleteMany({ product: deleted._id });
+            await s3DeleteObject(deleted._id.toString());
         }
         return res.status(204).json();
     } catch (err) {
@@ -92,8 +92,8 @@ const exportProducts = async (_req: Request, res: Response, next: NextFunction) 
             "Available Stock": product.stock
         }));
         const csv = json2csv(json);
-        await writeFile("product.csv", csv);
-        return res.status(200).download("product.csv", );
+        await writeFile("products.csv", csv);
+        return res.status(200).download("products.csv");
     } catch (err) {
         next(err);
     }
