@@ -8,7 +8,8 @@ import {
 } from "../controllers/user";
 import {
     getStocks,
-    getWarehouseBreakdown
+    getWarehouseBreakdown,
+    exportStocks
 } from "../controllers/stock";
 import {
     getProducts,
@@ -55,6 +56,7 @@ router.delete("/v1/warehouses/:id", deleteWarehouses);
 // stock routes
 router.get("/v1/stocks", getStocks);
 router.get("/v1/breakdown", getWarehouseBreakdown);
+router.get("/v1/stocks/export", exportStocks);
 
 // transaction routes
 router.get("/v1/transactions", getTransactions);
