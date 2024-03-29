@@ -5,6 +5,15 @@ import Product from "../models/product";
 import Transaction from "../models/transaction";
 import Picklist from "../models/picklist";
 
+interface AuthRequest extends Request {
+    user: {
+        sub: string,
+        role: "executive" | "manager" | "root",
+        name: string,
+        username: string
+    }
+}
+
 const getTransactions = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filter: {
@@ -35,8 +44,7 @@ const postTransactionsIn = async (req: Request, res: Response, next: NextFunctio
     try {
         const transaction = new Transaction(req.body);
         transaction.action = "STOCK_IN";
-        // transaction.user = new Types.ObjectId(req.user.sub);
-        transaction.user = new Types.ObjectId("65e4c6e211247715a07ead7e");
+        transaction.user = new Types.ObjectId((req as AuthRequest).user.sub);
 
         const session = await startSession();
         session.startTransaction();
@@ -83,8 +91,7 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
                             action: "STOCK_OUT",
                             reason: "picklist",
                             quantity: stock.quantity,
-                            // user: new new Types.ObjectId(req.user.sub),
-                            user: new Types.ObjectId("65e4c6e211247715a07ead7e"),
+                            user: (req as AuthRequest).user.sub,
                             product: stock.product,
                             warehouse: stock.warehouse._id
                         }).save());
@@ -105,8 +112,7 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
                             action: "STOCK_OUT",
                             reason: "picklist",
                             quantity: required,
-                            // user: new new Types.ObjectId(req.user.sub),
-                            user: new Types.ObjectId("65e4c6e211247715a07ead7e"),
+                            user: (req as AuthRequest).user.sub,
                             product: stock.product,
                             warehouse: stock.warehouse._id
                         }).save());
@@ -143,8 +149,7 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
         // for processing single transaction 
         const transaction = new Transaction(req.body);
         transaction.action = "STOCK_OUT";
-        // transaction.user = new Types.ObjectId(req.user.sub);
-        transaction.user = new Types.ObjectId("65e4c6e211247715a07ead7e");
+        transaction.user = new Types.ObjectId((req as AuthRequest).user.sub);
 
         const session = await startSession();
         session.startTransaction();
