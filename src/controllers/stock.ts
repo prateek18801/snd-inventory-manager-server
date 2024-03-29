@@ -1,10 +1,12 @@
+import { writeFile } from "fs/promises";
 import { Request, Response, NextFunction } from "express";
+import { json2csv } from "json-2-csv";
 import Stock from "../models/stock";
 
 const getStocks = async (_req: Request, res: Response, next: NextFunction) => {
     try {
-        const stock = await Stock.find({ quantity: { $gt: 0 } }).populate("product").populate("warehouse").lean();
-        return res.status(200).json(stock);
+        const stocks = await Stock.find({ quantity: { $gt: 0 } }).populate("product").populate("warehouse").lean();
+        return res.status(200).json(stocks);
     } catch (err) {
         next(err);
     }
@@ -14,19 +16,19 @@ const getWarehouseBreakdown = async (req: Request, res: Response, next: NextFunc
     try {
         const breakdown = [];
         let required: number = Math.max(+(req.query.quantity || 0), 0);
-        const stock = await Stock.find({ product: req.query.product, quantity: { $gt: 0 } }).populate("warehouse").sort({ quantity: 1 });
-        for (const ws of stock) {
-            if (ws.quantity <= required) {
-                required -= ws.quantity;
+        const stocks = await Stock.find({ product: req.query.product, quantity: { $gt: 0 } }).populate("warehouse").sort({ quantity: 1 });
+        for (const stock of stocks) {
+            if (stock.quantity <= required) {
+                required -= stock.quantity;
                 breakdown.push({
-                    warehouse: ws.warehouse,
-                    quantity: ws.quantity
+                    warehouse: stock.warehouse,
+                    quantity: stock.quantity
                 });
                 continue;
             }
             if (required > 0) {
                 breakdown.push({
-                    warehouse: ws.warehouse,
+                    warehouse: stock.warehouse,
                     quantity: required
                 });
                 required = 0;
@@ -42,7 +44,32 @@ const getWarehouseBreakdown = async (req: Request, res: Response, next: NextFunc
     }
 }
 
+const exportStocks = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const filter: { warehouse?: string } = {};
+        if (req.query.warehouse) {
+            filter.warehouse = req.query.warehouse as string;
+        }
+        const stocks = await Stock.find(filter).populate("product").populate("warehouse").lean();
+
+        const json = stocks.map((stock, i) => ({
+            "SNo": i + 1,
+            "PId/SKU": (stock as any).product.p_id.toString(),
+            "Product Name": (stock as any).product.name,
+            "Image Url": (stock as any).product.image,
+            "Warehouse": `${(stock as any).warehouse.name} (${(stock as any).warehouse.w_id})`,
+            "Quantity": stock.quantity
+        }));
+        const csv = json2csv(json);
+        await writeFile("inventory.csv", csv);
+        return res.status(200).download("inventory.csv", `inventory${req.query.warehouse ? "_" + (stocks[0] as any).warehouse.w_id : ""}.csv`);
+    } catch (err) {
+        next(err);
+    }
+}
+
 export {
     getStocks,
-    getWarehouseBreakdown
+    getWarehouseBreakdown,
+    exportStocks
 };
