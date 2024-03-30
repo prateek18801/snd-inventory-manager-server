@@ -48,7 +48,7 @@ router.get("/v1/products", auth("manager"), getProducts);
 router.post("/v1/products", auth("manager"), upload.single("image"), postProducts);
 router.patch("/v1/products/:id", auth("manager"), upload.single("image"), patchProducts);
 router.delete("/v1/products/:id", auth("manager"), deleteProducts);
-router.get("/v1/product/export", auth("manager"), exportProducts);
+router.get("/v1/product/export", exportProducts);
 
 // warehouse routes
 router.get("/v1/warehouses", auth("manager"), getWarehouses);
@@ -58,13 +58,13 @@ router.delete("/v1/warehouses/:id", auth("manager"), deleteWarehouses);
 // stock routes
 router.get("/v1/stocks", auth("executive"), getStocks);
 router.get("/v1/breakdown", auth("executive"), getWarehouseBreakdown);
-router.get("/v1/stocks/export", auth("executive"), exportStocks);
+router.get("/v1/stocks/export", exportStocks);
 
 // transaction routes
 router.get("/v1/transactions", auth("manager"), getTransactions);
 router.post("/v1/transactions/in", auth("executive"), postTransactionsIn);
 router.post("/v1/transactions/out", auth("executive"), postTransactionsOut);
-router.get("/v1/transactions/export", auth("manager"), exportTransactions);
+router.get("/v1/transactions/export", exportTransactions);
 
 // application routes
 router.get("/v1/app/context", auth("executive"), getAppContext);
