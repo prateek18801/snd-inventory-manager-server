@@ -50,13 +50,13 @@ const exportStocks = async (req: Request, res: Response, next: NextFunction) => 
         if (req.query.warehouse) {
             filter.warehouse = req.query.warehouse as string;
         }
-        const stocks = await Stock.find(filter).populate("product").populate("warehouse").lean();
+        const stocks = await Stock.find({ ...filter, quantity: { $gt: 0 } }).populate("product").populate("warehouse").lean();
 
         const json = stocks.map((stock, i) => ({
             "SNo": i + 1,
             "PId/SKU": (stock as any).product.p_id.toString(),
             "Product Name": (stock as any).product.name,
-            "Image Url": (stock as any).product.image,
+            "Image Url": (stock as any).product.image ?? "",
             "Warehouse": `${(stock as any).warehouse.name} (${(stock as any).warehouse.w_id})`,
             "Quantity": stock.quantity
         }));
