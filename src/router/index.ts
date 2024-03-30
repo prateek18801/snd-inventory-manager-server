@@ -26,7 +26,8 @@ import {
 import {
     getTransactions,
     postTransactionsIn,
-    postTransactionsOut
+    postTransactionsOut,
+    exportTransactions
 } from "../controllers/transaction";
 import { getAppContext, getDashboard } from "../controllers/page";
 
@@ -62,6 +63,7 @@ router.get("/v1/stocks/export", exportStocks);
 router.get("/v1/transactions", getTransactions);
 router.post("/v1/transactions/in", postTransactionsIn);
 router.post("/v1/transactions/out", postTransactionsOut);
+router.get("/v1/transactions/export", exportTransactions);
 
 // application routes
 router.get("/v1/app/context", getAppContext);
