@@ -1,9 +1,11 @@
+import { writeFile } from "fs/promises";
 import { Request, Response, NextFunction } from "express";
 import { startSession, Types } from "mongoose";
+import { json2csv } from "json-2-csv";
 import Stock from "../models/stock";
 import Product from "../models/product";
-import Transaction from "../models/transaction";
 import Picklist from "../models/picklist";
+import Transaction from "../models/transaction";
 
 interface AuthRequest extends Request {
     user: {
@@ -183,8 +185,49 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
     }
 }
 
+const exportTransactions = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const filter: {
+            created_at: { $gte: string, $lte: string },
+            product?: string,
+            warehouse?: string,
+            user?: string
+        } = {
+            created_at: {
+                $gte: `${req.query.start || new Date().toISOString().split("T")[0]}T00:00:00.000+05:30`,
+                $lte: `${req.query.end || new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]}T00:00:00.000+05:30`
+            }
+        };
+        for (const key of ["product", "warehouse", "action", "user"]) {
+            if (req.query[key]) {
+                (filter as any)[key] = req.query[key];
+            }
+        }
+
+        const transactions = await Transaction.find(filter).populate("product").populate("warehouse").populate("user").lean();
+        const json = transactions.map((transaction, i) => ({
+            "SNo": i + 1,
+            "Txn Id": transaction._id.toString(),
+            "Timestamp": new Date((transaction as any).created_at).toLocaleString(),
+            "Action": transaction.action,
+            "Reason": transaction.reason,
+            "PId/SKU": (transaction as any).product.p_id,
+            "Product Name": (transaction as any).product.name,
+            "Warehouse": `${(transaction as any).warehouse.name} (${(transaction as any).warehouse.w_id})`,
+            "Quantity": transaction.quantity,
+            "Remarks": transaction.remarks ?? "",
+        }));
+        const csv = json2csv(json);
+        await writeFile("transactions.csv", csv);
+        return res.status(200).download("transactions.csv", `transactions.csv`);
+    } catch (err) {
+        next(err);
+    }
+}
+
 export {
     getTransactions,
     postTransactionsIn,
-    postTransactionsOut
+    postTransactionsOut,
+    exportTransactions
 }
