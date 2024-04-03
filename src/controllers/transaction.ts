@@ -75,9 +75,11 @@ const postTransactionsIn = async (req: Request, res: Response, next: NextFunctio
 const postTransactionsOut = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // for processing multiple transactions (picklist)
-        if (Array.isArray(req.body)) {
+        if (req.body.list && Array.isArray(req.body.list)) {
+            const list = (req.body as any).list;
+            const channel = (req.body as any).channel;
             const result = [];
-            for (const item of req.body) {
+            for (const item of list) {
                 const stocks = await Stock.find({ product: item.product, quantity: { $gt: 0 } }).populate("warehouse").sort({ quantity: 1 });
                 if (item.quantity > stocks.reduce((total, { quantity }) => total + quantity, 0)) continue;
 
@@ -140,10 +142,13 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
                     breakdown: breakdown
                 });
             }
-            await new Picklist({ list: result }).save();
+            await new Picklist({
+                channel: channel,
+                list: result
+            }).save();
 
             return res.status(201).json({
-                message: "Transaction Successful",
+                message: "Transaction successful",
                 data: result
             });
         }
