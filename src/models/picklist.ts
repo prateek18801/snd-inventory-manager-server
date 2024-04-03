@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 
 const PicklistSchema = new Schema({
+    channel: {type: String, required: true},
     list: [{
         product: { type: Schema.Types.ObjectId, required: true, ref: "Product" },
         quantity: { type: Number, required: true },
