@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import Product from "../models/product";
+import Picklist from "../models/picklist";
 import Warehouse from "../models/warehouse";
 import Transaction from "../models/transaction";
 
@@ -21,26 +22,19 @@ const getDashboard = async (req: Request, res: Response, next: NextFunction) => 
         const start = `${req.query.start || new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]}T00:00:00.000+05:30`;
         const end = `${req.query.end || new Date().toISOString().split("T")[0]}T00:00:00.000+05:30`;
 
-        const filter: {
-            created_at: { $gte: string, $lte: string },
-            product?: string,
-            warehouse?: string,
-            user?: string
-        } = { created_at: { $gte: start, $lte: end } };
-        for (const key of ["product", "warehouse", "user"]) {
-            if (req.query[key]) {
-                (filter as any)[key] = req.query[key];
-            }
-        }
+        const transactions = await Transaction.find({
+            created_at: { $gte: start, $lte: end },
+            action: "STOCK_OUT",
+            reason: "picklist"
+        }).lean();
 
-        const transactions = await Transaction.find(filter).lean();
         const frequency: Record<string, number> = {};
         for (const transaction of transactions) {
             if (!frequency[transaction.product.toString()]) {
-                frequency[transaction.product.toString()] = 1;
+                frequency[transaction.product.toString()] = transaction.quantity;
                 continue;
             }
-            frequency[transaction.product.toString()]++;
+            frequency[transaction.product.toString()] += transaction.quantity;
         }
 
         const period = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24));
@@ -51,8 +45,20 @@ const getDashboard = async (req: Request, res: Response, next: NextFunction) => 
             drr: frequency[product._id.toString()] / period
         })).sort((a, b) => b.drr - a.drr);
 
+        const picklists = await Picklist.find({ created_at: { $gte: start, $lte: end } }).lean();
+        
+        const distribution: Record<string, number> = {};
+        for (const picklist of picklists) {
+            const totalQty = picklist.list.reduce((acc, obj) => acc + obj.quantity, 0);
+            if(!distribution[picklist.channel]) {
+                distribution[picklist.channel] = totalQty;
+                continue;
+            }
+            distribution[picklist.channel] += totalQty;
+        }
         return res.status(200).json({
-            trending
+            trending,
+            distribution
         });
     } catch (err) {
         next(err);
