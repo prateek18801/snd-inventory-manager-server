@@ -42,15 +42,15 @@ const getDashboard = async (req: Request, res: Response, next: NextFunction) => 
         const products = await Product.find({ _id: { $in: Object.keys(frequency) } }).lean();
         const trending = products.map(product => ({
             ...product,
-            drr: frequency[product._id.toString()] / period
+            drr: Math.round((frequency[product._id.toString()] / period) * 10) / 10
         })).sort((a, b) => b.drr - a.drr);
 
         const picklists = await Picklist.find({ created_at: { $gte: start, $lte: end } }).lean();
-        
+
         const distribution: Record<string, number> = {};
         for (const picklist of picklists) {
             const totalQty = picklist.list.reduce((acc, obj) => acc + obj.quantity, 0);
-            if(!distribution[picklist.channel]) {
+            if (!distribution[picklist.channel]) {
                 distribution[picklist.channel] = totalQty;
                 continue;
             }
