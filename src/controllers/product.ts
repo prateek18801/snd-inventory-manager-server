@@ -87,11 +87,13 @@ const exportProducts = async (_req: Request, res: Response, next: NextFunction) 
         const products = await Product.find({}).lean();
         const json = products.map((product, i) => ({
             "SNo": i + 1,
-            "PId/SKU": product.p_id,
+            "PID/SKU": product.p_id,
             "Product Name": product.name,
             "Image Url": product.image,
-            "Alert Stock": product.alert,
-            "Available Stock": product.stock
+            "Available Stock": product.stock,
+            "Minimum Stock": product.lead_time * product.drr,
+            "DRR(3D)": product.drr,
+            "Lead Time(D)": product.lead_time
         }));
         const csv = json2csv(json);
         await writeFile("products.csv", csv);
