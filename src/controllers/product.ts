@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import { json2csv } from "json-2-csv";
 import Stock from "../models/stock";
 import Product from "../models/product";
+import Transaction from "../models/transaction";
 import { s3UploadObject, s3DeleteObject } from "../utils/aws";
 
 const getProducts = async (_req: Request, res: Response, next: NextFunction) => {
@@ -72,6 +73,7 @@ const deleteProducts = async (req: Request, res: Response, next: NextFunction) =
         const deleted = await Product.findByIdAndDelete(req.params.id);
         if (deleted) {
             await Stock.deleteMany({ product: deleted._id });
+            await Transaction.deleteMany({ product: deleted._id });
             await s3DeleteObject(deleted._id.toString());
         }
         return res.status(204).json();
