@@ -26,7 +26,7 @@ const getTransactions = async (req: Request, res: Response, next: NextFunction) 
         } = {
             created_at: {
                 $gte: `${req.query.start || new Date().toISOString().split("T")[0]}T00:00:00.000+05:30`,
-                $lte: `${req.query.end || new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]}T00:00:00.000+05:30`
+                $lte: `${req.query.end || new Date().toISOString().split("T")[0]}T23:59:59.999+05:30`
             }
         };
         for (const key of ["product", "warehouse", "user"]) {
@@ -200,7 +200,7 @@ const exportTransactions = async (req: Request, res: Response, next: NextFunctio
         } = {
             created_at: {
                 $gte: `${req.query.start || new Date().toISOString().split("T")[0]}T00:00:00.000+05:30`,
-                $lte: `${req.query.end || new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split("T")[0]}T00:00:00.000+05:30`
+                $lte: `${req.query.end || new Date().toISOString().split("T")[0]}T23:59:59.999+05:30`
             }
         };
         for (const key of ["product", "warehouse", "action", "user"]) {
