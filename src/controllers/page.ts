@@ -19,8 +19,9 @@ const getAppContext = async (req: Request, res: Response, next: NextFunction) =>
 
 const getDashboard = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const start = `${req.query.start || new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split("T")[0]}T00:00:00.000+05:30`;
-        const end = `${req.query.end || new Date().toISOString().split("T")[0]}T00:00:00.000+05:30`;
+        const today = new Date();
+        const start = `${req.query.start || new Date(today.setDate(today.getDate() - 1)).toISOString().split("T")[0]}T00:00:00.000+05:30`;
+        const end = `${req.query.end || new Date(today.setDate(today.getDate() - 1)).toISOString().split("T")[0]}T23:59:59.999+05:30`;
 
         const transactions = await Transaction.find({
             created_at: { $gte: start, $lte: end },
