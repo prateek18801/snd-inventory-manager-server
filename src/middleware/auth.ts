@@ -8,10 +8,6 @@ type TJWTUser = {
     username: string
 }
 
-type TJWTPayload = {
-    user: TJWTUser
-}
-
 interface AuthRequest extends Request {
     user?: TJWTUser
 }
