@@ -2,6 +2,7 @@ import express, { json, urlencoded, Express, Request, Response, NextFunction } f
 import cors from "cors";
 import router from "./router";
 import db from "./utils/db";
+import { drrUpdateJob } from "./utils/cron";
 
 const app: Express = express();
 app.use(cors());
@@ -26,4 +27,5 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 app.listen(process.env.PORT, () => {
     console.log("✅ server started");
     db.connect();
+    drrUpdateJob.start();
 });
