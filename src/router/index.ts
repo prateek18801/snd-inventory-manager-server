@@ -2,7 +2,9 @@ import { Router } from "express";
 import multer, { memoryStorage } from "multer";
 import { postLogin } from "../controllers/auth";
 import {
+    getUsers,
     postUsers,
+    patchUsers,
     softDeleteUsers,
     hardDeleteUsers
 } from "../controllers/user";
@@ -39,8 +41,10 @@ const upload = multer({ storage: memoryStorage() });
 router.post("/v1/login", postLogin);
 
 // user routes
-router.post("/v1/users", auth("root"), postUsers);
-router.delete("/v1/users/:id", auth("root"), softDeleteUsers);
+router.get("/v1/users", auth("manager"), getUsers);
+router.post("/v1/users", auth("manager"), postUsers);
+router.patch("/v1/users", auth("manager"), patchUsers);
+router.delete("/v1/users/:id", auth("manager"), softDeleteUsers);
 router.delete("/v1/users/hard/:id", auth("root"), hardDeleteUsers);
 
 // product routes
