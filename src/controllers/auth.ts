@@ -5,7 +5,7 @@ import User from "../models/user";
 const postLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = await User.findOne({ username: req.body.username });
-        if (user && !user.archive) {
+        if (user && !user.archived) {
             if (await user.match(req.body.password)) {
                 const payload = {
                     sub: user._id,
