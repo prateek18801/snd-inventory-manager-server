@@ -2,7 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import User from "../models/user";
 
 const getUsers = async (req: Request, res: Response, next: NextFunction) => {
-
+    try {
+        const users = await User.find({ archived: false }).select({ password: 0 }).lean();
+        return res.status(200).json(users);
+    } catch (err) {
+        next(err);
+    }
 }
 
 const postUsers = async (req: Request, res: Response, next: NextFunction) => {
@@ -18,6 +23,21 @@ const postUsers = async (req: Request, res: Response, next: NextFunction) => {
 }
 
 const patchUsers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if(!updated) {
+            return res.status(400).json({
+                message: "user not found"
+            });
+        }
+        const { password, ...user } = updated;
+        return res.status(200).json({
+            message: "updated",
+            data: user
+        });
+    } catch (err) {
+        next(err);
+    }
 
 }
 
