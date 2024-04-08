@@ -6,16 +6,16 @@ interface IUser {
     role: string,
     username: string,
     password: string,
-    archive: boolean,
+    archived: boolean,
     match(password: string): Promise<boolean>
 };
 
 const UserSchema = new Schema<IUser>({
     name: { type: String, required: true },
     username: { type: String, required: true, unique: true },
-    password: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
     role: { type: String, enum: ["root", "manager", "executive"], default: "executive" },
-    archive: { type: Boolean, default: false }
+    archived: { type: Boolean, default: false }
 }, { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } });
 
 UserSchema.pre("save", async function (next) {
