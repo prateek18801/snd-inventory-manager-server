@@ -43,7 +43,7 @@ router.post("/v1/login", postLogin);
 // user routes
 router.get("/v1/users", auth("manager"), getUsers);
 router.post("/v1/users", auth("manager"), postUsers);
-router.patch("/v1/users", auth("manager"), patchUsers);
+router.patch("/v1/users/:id", auth("manager"), patchUsers);
 router.delete("/v1/users/:id", auth("manager"), softDeleteUsers);
 router.delete("/v1/users/hard/:id", auth("root"), hardDeleteUsers);
 
