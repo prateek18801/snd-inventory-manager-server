@@ -11,7 +11,7 @@ app.use(urlencoded({ extended: false }));
 
 app.use(router);
 
-app.get("/ping", (_req: Request, res: Response, _next: NextFunction) => {
+app.get(["/", "/ping"], (_req: Request, res: Response, _next: NextFunction) => {
     return res.status(200).json({
         message: "✅ server running"
     });
