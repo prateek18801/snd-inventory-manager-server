@@ -33,6 +33,7 @@ import {
 } from "../controllers/transaction";
 import { getAppContext, getDashboard } from "../controllers/page";
 import auth from "../middleware/auth";
+import { deleteShipments, getShipments, patchShipments, postShipments } from "../controllers/shipment";
 
 const router: Router = Router();
 const upload = multer({ storage: memoryStorage() });
@@ -63,6 +64,12 @@ router.delete("/v1/warehouses/:id", auth("manager"), deleteWarehouses);
 router.get("/v1/stocks", auth("executive"), getStocks);
 router.get("/v1/breakdown", auth("executive"), getWarehouseBreakdown);
 router.get("/v1/stocks/export", exportStocks);
+
+// shipment routes
+router.get("/v1/shipments", auth("manager"), getShipments);
+router.post("/v1/shipments", auth("manager"), postShipments);
+router.patch("/v1/shipments/:id", auth("manager"), patchShipments);
+router.delete("/v1/shipments/:id", auth("manager"), deleteShipments);
 
 // transaction routes
 router.get("/v1/transactions", auth("manager"), getTransactions);
