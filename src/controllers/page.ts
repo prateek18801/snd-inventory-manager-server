@@ -56,7 +56,7 @@ const getDashboard = async (req: Request, res: Response, next: NextFunction) => 
                     drr: +(productSalesFrequency[product._id.toString()] / period).toFixed(1)
                 });
             }
-            if (product.stock && product.stock <= Math.ceil(product.drr * product.lead_time)) {
+            if (product.stock && ((product.stock + product.in_transit) <= Math.ceil(product.drr * product.lead_time))) {
                 lowStockProducts.push(product);
             }
         }
