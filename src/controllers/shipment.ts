@@ -4,7 +4,7 @@ import Product from "../models/product";
 
 const getShipments = async (_req: Request, res: Response, next: NextFunction) => {
     try {
-        const shipments = await Shipment.find({}).populate("list.product").lean();
+        const shipments = await Shipment.find({}).populate("list.product").sort({ created_at: -1 }).lean();
         return res.status(200).json(shipments);
     } catch (err) {
         next(err);
