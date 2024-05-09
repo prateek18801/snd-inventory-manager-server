@@ -53,7 +53,7 @@ const getDashboard = async (req: Request, res: Response, next: NextFunction) => 
             if (product._id.toString() in productSalesFrequency) {
                 trendingProducts.push({
                     ...product,
-                    drr: +(productSalesFrequency[product._id.toString()] / period).toFixed(1)
+                    range_drr: +(productSalesFrequency[product._id.toString()] / period).toFixed(1)
                 });
             }
             if (product.stock && ((product.stock + product.in_transit) <= Math.ceil(product.drr * product.lead_time))) {
