@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import { json2csv } from "json-2-csv";
+import { writeFile } from "fs/promises";
 import Product from "../models/product";
 import Picklist from "../models/picklist";
 import Warehouse from "../models/warehouse";
@@ -61,7 +63,7 @@ const getDashboard = async (req: Request, res: Response, next: NextFunction) => 
             }
         }
 
-        trendingProducts.sort((a, b) => b.drr - a.drr);
+        trendingProducts.sort((a, b) => b.range_drr - a.range_drr);
         lowStockProducts.sort((a, b) => (Math.ceil(b.drr * b.lead_time) - b.stock) - (Math.ceil(a.drr * a.lead_time) - a.stock));
 
         // calculate channel distribution for sales
@@ -78,15 +80,59 @@ const getDashboard = async (req: Request, res: Response, next: NextFunction) => 
 
         return res.status(200).json({
             trending_products: trendingProducts,
-            channel_distribution: channelDistribution,
-            low_stock_products: lowStockProducts
+            low_stock_products: lowStockProducts,
+            channel_distribution: channelDistribution
         });
     } catch (err) {
         next(err);
     }
 }
 
+const getChannelReport = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // set dashboard data start and end range
+        const today = new Date();
+        const start = `${req.query.start || new Date(today.setDate(today.getDate() - 1)).toLocaleDateString("fr-CA")}T00:00:00.000+05:30`;
+        const end = `${req.query.end || new Date(today.setDate(today.getDate() - 1)).toLocaleDateString("fr-CA")}T23:59:59.999+05:30`;
+
+        const channel = req.params.channel;
+        const picklists = await Picklist.find({ created_at: { $gte: start, $lte: end }, channel }).lean();
+
+        // calculate product count map
+        const productSaleCount: Record<string, number> = {};
+        for(const picklist of picklists) {
+            for(const record of picklist.list) {
+                if (!productSaleCount[record.product.toString()]) {
+                    productSaleCount[record.product.toString()] = record.quantity;
+                    continue;
+                }
+                productSaleCount[record.product.toString()] += record.quantity;
+            }
+        }
+        
+        const products = await Product.find({_id: {$in: Object.keys(productSaleCount)}});
+
+        const json = products.map((product, i) => ({
+            "SNo": i + 1,
+            "PID/SKU": product.p_id,
+            "Product Name": product.name,
+            "Image Url": product.image,
+            "Available Stock": product.stock,
+            "Minimum Stock": product.lead_time * product.drr,
+            "DRR(3D)": product.drr,
+            "Total Sale": productSaleCount[product._id.toString()]
+        }));
+
+        const csv = json2csv(json)
+        await writeFile(`sales_report_${channel}.csv`, csv);
+        return res.status(200).download(`sales_report_${channel}.csv`);
+    } catch (err) {
+        next(err);
+    }
+}
+
 export {
+    getDashboard,
     getAppContext,
-    getDashboard
+    getChannelReport
 }
