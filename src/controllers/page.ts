@@ -91,17 +91,21 @@ const getDashboard = async (req: Request, res: Response, next: NextFunction) => 
 const getChannelReport = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // set dashboard data start and end range
-        const today = new Date();
-        const start = `${req.query.start || new Date(today.setDate(today.getDate() - 1)).toLocaleDateString("fr-CA")}T00:00:00.000+05:30`;
-        const end = `${req.query.end || new Date(today.setDate(today.getDate() - 1)).toLocaleDateString("fr-CA")}T23:59:59.999+05:30`;
+        const start = `${req.query.start || new Date().toLocaleDateString("fr-CA")}T00:00:00.000+05:30`;
+        const end = `${req.query.end || new Date().toLocaleDateString("fr-CA")}T23:59:59.999+05:30`;
 
-        const channel = req.params.channel;
-        const picklists = await Picklist.find({ created_at: { $gte: start, $lte: end }, channel }).lean();
+        // const period = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24));
+
+        const picklists = await Picklist.find({
+            created_at: { $gte: start, $lte: end },
+            channel: req.params.channel
+        }).lean();
+
 
         // calculate product count map
         const productSaleCount: Record<string, number> = {};
-        for(const picklist of picklists) {
-            for(const record of picklist.list) {
+        for (const picklist of picklists) {
+            for (const record of picklist.list) {
                 if (!productSaleCount[record.product.toString()]) {
                     productSaleCount[record.product.toString()] = record.quantity;
                     continue;
@@ -109,8 +113,8 @@ const getChannelReport = async (req: Request, res: Response, next: NextFunction)
                 productSaleCount[record.product.toString()] += record.quantity;
             }
         }
-        
-        const products = await Product.find({_id: {$in: Object.keys(productSaleCount)}});
+
+        const products = await Product.find({ _id: { $in: Object.keys(productSaleCount) } });
 
         const json = products.map((product, i) => ({
             "SNo": i + 1,
@@ -124,8 +128,59 @@ const getChannelReport = async (req: Request, res: Response, next: NextFunction)
         }));
 
         const csv = json2csv(json)
-        await writeFile(`sales_report_${channel}.csv`, csv);
-        return res.status(200).download(`sales_report_${channel}.csv`);
+        await writeFile(`sales_report_${req.params.channel ?? "combined"}.csv`, csv);
+        return res.status(200).download(`sales_report_${req.params.channel ?? "combined"}.csv`);
+    } catch (err) {
+        next(err);
+    }
+}
+
+const getDashboardAnalytics = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // set dashboard data start and end range
+        const start = `${req.query.start || new Date(new Date().setDate(new Date().getDate() - 2)).toLocaleDateString("fr-CA")}T00:00:00.000+05:30`;
+        const end = `${req.query.end || new Date().toLocaleDateString("fr-CA")}T23:59:59.999+05:30`;
+
+        const period = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24));
+
+        const picklists = await Picklist.find({ created_at: { $gte: start, $lte: end } }).lean();
+
+        const channelDayWiseSales: Record<string, Record<string, number>> = {};
+        const productChannelWiseSales: Record<string, Record<string, number>> = {};
+
+        for (const picklist of picklists) {
+            let channelTotalSale: number = 0;
+            for (const record of picklist.list) {
+                const p_id = record.product.toString();
+                channelTotalSale += record.quantity;
+
+                if (!productChannelWiseSales[p_id]) {
+                    productChannelWiseSales[p_id] = {};
+                }
+                productChannelWiseSales[p_id][picklist.channel] = (productChannelWiseSales[p_id][picklist.channel] ?? 0) + record.quantity;
+            }
+            if (!channelDayWiseSales[picklist.channel]) {
+                channelDayWiseSales[picklist.channel] = {};
+            }
+            channelDayWiseSales[picklist.channel][((picklist as any).created_at).toLocaleDateString("fr-CA")] = (channelDayWiseSales[picklist.channel][((picklist as any).created_at).toLocaleDateString("fr-CA")] ?? 0) + channelTotalSale;
+        }
+
+        const products = await Product.find({ _id: { $in: Object.keys(productChannelWiseSales) } }).lean();
+
+        const populatedProductSalesData = [];
+        for (const product of products) {
+            const channelWiseSales = productChannelWiseSales[product._id.toString()];
+            populatedProductSalesData.push({
+                ...product,
+                saleChannels: channelWiseSales,
+                totalSale: Object.values(channelWiseSales).reduce((a, b) => a + b, 0),
+                period
+            });
+        }
+        return res.status(200).json({
+            channelSales: channelDayWiseSales,
+            productSales: populatedProductSalesData
+        });
     } catch (err) {
         next(err);
     }
@@ -134,5 +189,6 @@ const getChannelReport = async (req: Request, res: Response, next: NextFunction)
 export {
     getDashboard,
     getAppContext,
-    getChannelReport
+    getChannelReport,
+    getDashboardAnalytics
 }
