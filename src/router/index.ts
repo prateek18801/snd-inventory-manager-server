@@ -31,7 +31,12 @@ import {
     postTransactionsOut,
     exportTransactions
 } from "../controllers/transaction";
-import { getDashboardAnalytics, getAppContext, getChannelReport, getDashboard } from "../controllers/page";
+import {
+    getAppContext,
+    getChannelReport,
+    getAnalyticsDashboard,
+    getInventoryDashboard
+} from "../controllers/page";
 import auth from "../middleware/auth";
 import { deleteShipments, getShipments, patchShipments, postShipments } from "../controllers/shipment";
 
@@ -79,8 +84,8 @@ router.get("/v1/transactions/export", exportTransactions);
 
 // application routes
 router.get("/v1/app/context", auth("executive"), getAppContext);
-router.get("/v1/app/dash/inventory", auth("manager"), getDashboard);
-router.get("/v1/app/dash/analytics", auth("manager"), getDashboardAnalytics);
-router.get("/v1/channel-report/export/:channel", getChannelReport);
+router.get("/v1/app/dash/inventory", auth("manager"), getInventoryDashboard);
+router.get("/v1/app/dash/analytics", auth("manager"), getAnalyticsDashboard);
+router.get("/v1/sales-report/export/:channel?", getChannelReport);
 
 export default router;
