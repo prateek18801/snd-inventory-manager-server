@@ -100,39 +100,64 @@ const getChannelReport = async (req: Request, res: Response, next: NextFunction)
         // set dashboard data start and end range
         const start = `${req.query.start || new Date().toLocaleDateString("fr-CA")}T00:00:00.000+05:30`;
         const end = `${req.query.end || new Date().toLocaleDateString("fr-CA")}T23:59:59.999+05:30`;
+        let json: any[];
+        if (req.params.channel) {
+            const picklists = await Picklist.find({ created_at: { $gte: start, $lte: end }, channel: req.params.channel }).lean();
 
-        // const period = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24));
-
-        const picklists = await Picklist.find({
-            created_at: { $gte: start, $lte: end },
-            channel: req.params.channel
-        }).lean();
-
-
-        // calculate product count map
-        const productSaleCount: Record<string, number> = {};
-        for (const picklist of picklists) {
-            for (const record of picklist.list) {
-                if (!productSaleCount[record.product.toString()]) {
-                    productSaleCount[record.product.toString()] = record.quantity;
-                    continue;
+            // calculate product count map
+            const productSaleCount: Record<string, number> = {};
+            for (const picklist of picklists) {
+                for (const record of picklist.list) {
+                    if (!productSaleCount[record.product.toString()]) {
+                        productSaleCount[record.product.toString()] = record.quantity;
+                        continue;
+                    }
+                    productSaleCount[record.product.toString()] += record.quantity;
                 }
-                productSaleCount[record.product.toString()] += record.quantity;
             }
+            const products = await Product.find({ _id: { $in: Object.keys(productSaleCount) } });
+            json = products.map((product, i) => ({
+                "SNo": i + 1,
+                "PID/SKU": product.p_id,
+                "Product Name": product.name,
+                "Image Url": product.image,
+                "Available Stock": product.stock,
+                "Minimum Stock": product.lead_time * product.drr,
+                "DRR(3D)": product.drr,
+                "Total Sale": productSaleCount[product._id.toString()]
+            }));
+        } else {
+            const picklists = await Picklist.find({ created_at: { $gte: start, $lte: end } }).lean();
+
+            const productChannelWiseSales: Record<string, Record<string, number>> = {};
+            for (const picklist of picklists) {
+                for (const record of picklist.list) {
+                    const p_id = record.product.toString();
+                    if (!productChannelWiseSales[p_id]) {
+                        productChannelWiseSales[p_id] = {};
+                    }
+                    productChannelWiseSales[p_id][picklist.channel] = (productChannelWiseSales[p_id][picklist.channel] ?? 0) + record.quantity;
+                }
+            }
+
+            const products = await Product.find({ _id: { $in: Object.keys(productChannelWiseSales) } }).lean();
+            json = products.map((product, i) => ({
+                "SNo": i + 1,
+                "PID/SKU": product.p_id,
+                "Product Name": product.name,
+                "Image Url": product.image,
+                "Available Stock": product.stock,
+                "Minimum Stock": product.lead_time * product.drr,
+                "DRR(3D)": product.drr,
+                "Amazon": productChannelWiseSales[product._id.toString()]["amazon"] ?? 0,
+                "Flipkart": productChannelWiseSales[product._id.toString()]["flipkart"] ?? 0,
+                "Firstcry": productChannelWiseSales[product._id.toString()]["firstcry"] ?? 0,
+                "Jiomart": productChannelWiseSales[product._id.toString()]["jiomart"] ?? 0,
+                "Website": productChannelWiseSales[product._id.toString()]["snd-website"] ?? 0,
+                "SND App": productChannelWiseSales[product._id.toString()]["snd-app"] ?? 0,
+                "Total Sales": Object.values(productChannelWiseSales[product._id.toString()]).reduce((a, b) => a + b, 0)
+            }));
         }
-
-        const products = await Product.find({ _id: { $in: Object.keys(productSaleCount) } });
-
-        const json = products.map((product, i) => ({
-            "SNo": i + 1,
-            "PID/SKU": product.p_id,
-            "Product Name": product.name,
-            "Image Url": product.image,
-            "Available Stock": product.stock,
-            "Minimum Stock": product.lead_time * product.drr,
-            "DRR(3D)": product.drr,
-            "Total Sale": productSaleCount[product._id.toString()]
-        }));
 
         const csv = json2csv(json)
         await writeFile(`sales_report_${req.params.channel ?? "combined"}.csv`, csv);
