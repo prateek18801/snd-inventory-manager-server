@@ -144,7 +144,8 @@ const postTransactionsOut = async (req: Request, res: Response, next: NextFuncti
             }
             await new Picklist({
                 channel: channel,
-                list: result
+                list: result,
+                user: (req as any).user.sub
             }).save();
 
             return res.status(201).json({
