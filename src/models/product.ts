@@ -7,7 +7,10 @@ const ProductSchema = new Schema({
     in_transit: { type: Number, default: 0 },
     lead_time: { type: Number, required: true },
     drr: { type: Number, default: 0 },
-    image: { type: String }
+    image: { type: String },
+    amazon: { type: String },
+    website: { type: String },
+    flipkart: { type: String }
 }, { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } });
 
 export default model("Product", ProductSchema);
