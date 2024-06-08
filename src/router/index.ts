@@ -39,6 +39,7 @@ import {
 } from "../controllers/page";
 import auth from "../middleware/auth";
 import { deleteShipments, getShipments, patchShipments, postShipments } from "../controllers/shipment";
+import { deleteCategories, getCategories, postCategories } from "../controllers/category";
 
 const router: Router = Router();
 const upload = multer({ storage: memoryStorage() });
@@ -81,6 +82,11 @@ router.get("/v1/transactions", auth("manager"), getTransactions);
 router.post("/v1/transactions/in", auth("executive"), postTransactionsIn);
 router.post("/v1/transactions/out", auth("executive"), postTransactionsOut);
 router.get("/v1/transactions/export", exportTransactions);
+
+// category routes
+router.get("/v1/categories", auth("manager"), getCategories);
+router.post("/v1/categories", auth("manager"), postCategories);
+router.delete("/v1/categories/:id", auth("manager"), deleteCategories);
 
 // application routes
 router.get("/v1/app/context", auth("executive"), getAppContext);
