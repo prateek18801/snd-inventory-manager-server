@@ -35,7 +35,8 @@ import {
     getAppContext,
     getChannelReport,
     getAnalyticsDashboard,
-    getInventoryDashboard
+    getInventoryDashboard,
+    getStockReportForDate
 } from "../controllers/page";
 import auth from "../middleware/auth";
 import { deleteShipments, getShipments, patchShipments, postShipments } from "../controllers/shipment";
@@ -93,5 +94,6 @@ router.get("/v1/app/context", auth("executive"), getAppContext);
 router.get("/v1/app/dash/inventory", auth("manager"), getInventoryDashboard);
 router.get("/v1/app/dash/analytics", auth("manager"), getAnalyticsDashboard);
 router.get("/v1/sales-report/export/:channel?", getChannelReport);
+router.get("/v1/stock-report/export", getStockReportForDate);
 
 export default router;

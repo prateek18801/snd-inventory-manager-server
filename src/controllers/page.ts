@@ -4,6 +4,7 @@ import { writeFile } from "fs/promises";
 import Product from "../models/product";
 import Picklist from "../models/picklist";
 import Warehouse from "../models/warehouse";
+import Transaction from "../models/transaction";
 
 const getAppContext = async (_req: Request, res: Response, next: NextFunction) => {
     try {
@@ -167,9 +168,59 @@ const getChannelReport = async (req: Request, res: Response, next: NextFunction)
     }
 }
 
+const getStockReportForDate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const filter: {
+            created_at: { $gte: string, $lte: string },
+            product?: string,
+            warehouse?: string,
+            action?: string,
+            user?: string
+        } = {
+            created_at: {
+                $gte: `${req.query.date || new Date().toLocaleDateString("fr-CA")}T00:00:00.000+05:30`,
+                $lte: `${new Date().toLocaleDateString("fr-CA")}T23:59:59.999+05:30`
+            }
+        };
+        for (const key of ["product", "warehouse", "action", "user"]) {
+            if (req.query[key]) {
+                (filter as any)[key] = req.query[key];
+            }
+        }
+        
+        const productQtyChange: Record<string, any> = {};
+        
+        const transactions = await Transaction.find(filter).select("action quantity product").lean();
+        
+        for (const transaction of transactions) {
+            if (!productQtyChange[transaction.product.toString()]) {
+                productQtyChange[transaction.product.toString()] = 0;
+            }
+            productQtyChange[transaction.product.toString()] += (transaction.action === "STOCK_IN" ? -transaction.quantity : transaction.quantity)
+        }
+        
+        const products = await Product.find({}).select("p_id name image stock").lean();
+
+        const json = products.map((product, i) => ({
+            "SNo": i + 1,
+            "PId/SKU": product.p_id,
+            "Product Name": product.name,
+            "Image": product.image,
+            "Stock": product.stock + (productQtyChange[product._id.toString()] ?? 0)
+        }));
+
+        const csv = json2csv(json);
+        await writeFile("stock_report.csv", csv);
+        return res.status(200).download("stock_report.csv", `STOCK_REPORT_${req.query.date?.toString()}.csv`);
+    } catch (err) {
+        next(err);
+    }
+}
+
 export {
     getAppContext,
     getChannelReport,
     getInventoryDashboard,
-    getAnalyticsDashboard
+    getAnalyticsDashboard,
+    getStockReportForDate
 }
