@@ -217,9 +217,9 @@ const exportTransactions = async (req: Request, res: Response, next: NextFunctio
             "Timestamp": new Date((transaction as any).created_at).toLocaleString(),
             "Action": transaction.action,
             "Reason": transaction.reason,
-            "PId/SKU": (transaction as any).product.p_id,
-            "Product Name": (transaction as any).product.name,
-            "Warehouse": `${(transaction as any).warehouse.name} (${(transaction as any).warehouse.w_id})`,
+            "PId/SKU": (transaction as any)?.product?.p_id,
+            "Product Name": (transaction as any)?.product?.name,
+            "Warehouse": `${(transaction as any)?.warehouse?.name} (${(transaction as any)?.warehouse?.w_id})`,
             "Quantity": transaction.quantity,
             "Remarks": transaction.remarks ?? "",
         }));
