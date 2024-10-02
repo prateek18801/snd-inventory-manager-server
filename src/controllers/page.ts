@@ -27,7 +27,7 @@ const getInventoryDashboard = async (_req: Request, res: Response, next: NextFun
         const outOfStockProducts = [];
 
         for (const product of products) {
-            // product.stock = Math.abs(product.stock);
+            product.stock = Math.abs(product.stock);
             if (product.stock <= Math.ceil(product.drr * product.lead_time)) {
                 lowStockProducts.push(product);
             }
@@ -206,7 +206,7 @@ const getStockReportForDate = async (req: Request, res: Response, next: NextFunc
         transactions = transactions.concat(adjustments);
 
         // end of adjustment logic
-        
+
         for (const transaction of transactions) {
             if (!productQtyChange[transaction.product.toString()]) {
                 productQtyChange[transaction.product.toString()] = 0;
@@ -242,10 +242,10 @@ const postStockAdjustments = async (req: Request, res: Response, next: NextFunct
             return res.status(400).json({ message: "stock data file is required" });
         }
 
-        const fileJson = csv2json(req.file.buffer.toString());        
+        const fileJson = csv2json(req.file.buffer.toString());
 
         const productQtyChange: Record<string, any> = await getProductQtyChange(req.body.date);
-        
+
         const products = await Product.find({}).select("p_id name image stock").lean();
 
         const productCurrentStockMap: Record<string, number> = {};
@@ -260,9 +260,9 @@ const postStockAdjustments = async (req: Request, res: Response, next: NextFunct
             product: string,
             created_at: string
         }[] = [];
-
+        
         for (const product of fileJson) {
-            const diff = +(product as any).stock - productCurrentStockMap[(product as any).id];       
+            const diff = +(product as any).stock - productCurrentStockMap[(product as any).id];
             if (diff > 0) {
                 transactions.push({
                     action: "STOCK_OUT",
@@ -280,8 +280,6 @@ const postStockAdjustments = async (req: Request, res: Response, next: NextFunct
             }
         }
 
-        console.log(transactions);        
-
         const data = await Adjustment.insertMany(transactions);
 
         return res.status(200).json({
@@ -297,7 +295,7 @@ const getProductQtyChange = async (date: string) => {
 
     const productQtyChange: Record<string, any> = {};
 
-    const transactions: { action: string, quantity: number, product: string }[] = await Transaction.find({
+    let transactions: { action: string, quantity: number, product: string }[] = await Transaction.find({
         created_at: {
             $gte: `${date || new Date().toLocaleDateString("fr-CA")}T00:00:00.000+05:30`,
             $lte: `${new Date().toLocaleDateString("fr-CA")}T23:59:59.999+05:30`
@@ -313,7 +311,7 @@ const getProductQtyChange = async (date: string) => {
         }
     }).select("action quantity product").lean();
 
-    transactions.concat(adjustments);
+    transactions = transactions.concat(adjustments);
 
     // end of adjustment logic
 
