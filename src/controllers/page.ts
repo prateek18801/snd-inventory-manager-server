@@ -235,7 +235,7 @@ const getStockReportForDate = async (req: Request, res: Response, next: NextFunc
 
 const postStockAdjustments = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.params.date) {
+        if (!req.body.date) {
             return res.status(400).json({ message: "date is required" });
         }
         if (!req.file) {
@@ -244,7 +244,7 @@ const postStockAdjustments = async (req: Request, res: Response, next: NextFunct
 
         const fileJson = csv2json(req.file.buffer.toString());        
 
-        const productQtyChange: Record<string, any> = await getProductQtyChange(req.params.date);
+        const productQtyChange: Record<string, any> = await getProductQtyChange(req.body.date);
         
         const products = await Product.find({}).select("p_id name image stock").lean();
 
@@ -268,14 +268,14 @@ const postStockAdjustments = async (req: Request, res: Response, next: NextFunct
                     action: "STOCK_OUT",
                     quantity: Math.abs(diff),
                     product: (product as any).id,
-                    created_at: `${req.params.date}T13:00:00.000+05:30`
+                    created_at: `${req.body.date}T13:00:00.000+05:30`
                 });
             } else if (diff < 0) {
                 transactions.push({
                     action: "STOCK_IN",
                     quantity: Math.abs(diff),
                     product: (product as any).id,
-                    created_at: `${req.params.date}T13:00:00.000+05:30`
+                    created_at: `${req.body.date}T13:00:00.000+05:30`
                 });
             }
         }
@@ -285,7 +285,7 @@ const postStockAdjustments = async (req: Request, res: Response, next: NextFunct
         const data = await Adjustment.insertMany(transactions);
 
         return res.status(200).json({
-            message: `update stock for date ${req.params.date}`,
+            message: `update stock for date ${req.body.date}`,
             data
         });
     } catch (err) {
