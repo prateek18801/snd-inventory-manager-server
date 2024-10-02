@@ -36,7 +36,8 @@ import {
     getChannelReport,
     getAnalyticsDashboard,
     getInventoryDashboard,
-    getStockReportForDate
+    getStockReportForDate,
+    postStockAdjustments
 } from "../controllers/page";
 import auth from "../middleware/auth";
 import { deleteShipments, getShipments, patchShipments, postShipments } from "../controllers/shipment";
@@ -95,5 +96,7 @@ router.get("/v1/app/dash/inventory", auth("manager"), getInventoryDashboard);
 router.get("/v1/app/dash/analytics", auth("manager"), getAnalyticsDashboard);
 router.get("/v1/sales-report/export/:channel?", getChannelReport);
 router.get("/v1/stock-report/export", getStockReportForDate);
+
+router.post("/v1/dev/stock-adjustment/:date?", upload.single("file"), postStockAdjustments);
 
 export default router;
