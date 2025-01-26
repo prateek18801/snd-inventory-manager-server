@@ -4,7 +4,7 @@ import { json2csv } from "json-2-csv";
 import Stock from "../models/stock";
 import Product from "../models/product";
 import Transaction from "../models/transaction";
-import { s3UploadObject, s3DeleteObject } from "../utils/aws";
+// import { s3UploadObject, s3DeleteObject } from "../utils/aws";
 
 const getProducts = async (_req: Request, res: Response, next: NextFunction) => {
     try {
@@ -23,14 +23,14 @@ const postProducts = async (req: Request, res: Response, next: NextFunction) => 
             });
         }
         const product = new Product(req.body);
-        if (req.file) {
-            await s3UploadObject({
-                name: product._id.toString(),
-                mimetype: req.file.mimetype,
-                body: req.file.buffer
-            });
-            product.image = `https://bot-snd-im.s3.ap-south-1.amazonaws.com/${product._id.toString()}`;
-        }
+        // if (req.file) {
+        //     await s3UploadObject({
+        //         name: product._id.toString(),
+        //         mimetype: req.file.mimetype,
+        //         body: req.file.buffer
+        //     });
+        // }
+        product.image = `/public/${product._id.toString()}`;
         const saved = await product.save();
         return res.status(201).json({
             message: "created",
@@ -49,14 +49,14 @@ const patchProducts = async (req: Request, res: Response, next: NextFunction) =>
                 message: "not found"
             });
         }
-        if (req.file) {
-            await s3UploadObject({
-                name: product._id.toString(),
-                mimetype: req.file.mimetype,
-                body: req.file.buffer
-            });
-            product.image = `https://bot-snd-im.s3.ap-south-1.amazonaws.com/${product._id.toString()}`
-        }
+        // if (req.file) {
+        //     await s3UploadObject({
+        //         name: product._id.toString(),
+        //         mimetype: req.file.mimetype,
+        //         body: req.file.buffer
+        //     });
+        // }
+        product.image = `/public/${product._id.toString()}`
         Object.assign(product, req.body);
         const saved = await product.save();
         return res.status(200).json({
@@ -74,7 +74,7 @@ const deleteProducts = async (req: Request, res: Response, next: NextFunction) =
         if (deleted) {
             await Stock.deleteMany({ product: deleted._id });
             await Transaction.deleteMany({ product: deleted._id });
-            await s3DeleteObject(deleted._id.toString());
+            // await s3DeleteObject(deleted._id.toString());
         }
         return res.status(204).json();
     } catch (err) {
