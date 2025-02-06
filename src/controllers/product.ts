@@ -4,6 +4,8 @@ import { json2csv } from "json-2-csv";
 import Stock from "../models/stock";
 import Product from "../models/product";
 import Transaction from "../models/transaction";
+import { unlinkSync, writeFileSync } from "fs";
+import path from "path";
 // import { s3UploadObject, s3DeleteObject } from "../utils/aws";
 
 const getProducts = async (_req: Request, res: Response, next: NextFunction) => {
@@ -30,7 +32,13 @@ const postProducts = async (req: Request, res: Response, next: NextFunction) => 
         //         body: req.file.buffer
         //     });
         // }
-        product.image = `/public/${product._id.toString()}`;
+
+        if (req.file) {
+            const filename = product._id.toString();
+            writeFileSync(path.join(__dirname, "..", "..", "public", filename), req.file.buffer);
+            product.image = `https://api-im.gosnd.com/public/${filename}`;
+        }
+
         const saved = await product.save();
         return res.status(201).json({
             message: "created",
@@ -56,7 +64,13 @@ const patchProducts = async (req: Request, res: Response, next: NextFunction) =>
         //         body: req.file.buffer
         //     });
         // }
-        product.image = `/public/${product._id.toString()}`
+
+        if (req.file) {
+            const filename = product._id.toString();
+            writeFileSync(path.join(__dirname, "..", "..", "public", filename), req.file.buffer);
+            product.image = `https://api-im.gosnd.com/public/${filename}`;
+        }
+
         Object.assign(product, req.body);
         const saved = await product.save();
         return res.status(200).json({
@@ -75,6 +89,8 @@ const deleteProducts = async (req: Request, res: Response, next: NextFunction) =
             await Stock.deleteMany({ product: deleted._id });
             await Transaction.deleteMany({ product: deleted._id });
             // await s3DeleteObject(deleted._id.toString());
+            const filename = deleted._id.toString();
+            unlinkSync(path.join(__dirname, "..", "..", "public", filename));
         }
         return res.status(204).json();
     } catch (err) {

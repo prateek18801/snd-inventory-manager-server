@@ -43,7 +43,7 @@ import { deleteShipments, getShipments, patchShipments, postShipments } from "..
 import { deleteCategories, getCategories, postCategories } from "../controllers/category";
 
 const router: Router = Router();
-const upload = multer({ dest: "public/" });
+const upload = multer({ storage: memoryStorage() });
 
 // auth routes
 router.post("/v1/login", postLogin);
